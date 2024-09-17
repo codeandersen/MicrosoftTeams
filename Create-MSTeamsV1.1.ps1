@@ -58,7 +58,7 @@
         .PARAMETER Extension
 
         .EXAMPLE
-        C:\PS> Create-MSTeams.ps1 -TeamName "Finance Department" -TeamDescription "Finance Department documents" -TeamOwner peter@contoso.com -TeamAlias "FinanceDepartment" -TenantDomain contoso -PnPOnlineAppID a4363362-4336-4f33-833a-633f09628a7e
+        C:\PS> Create-MSTeamsV1.1.ps1 -TeamName "Finance Department" -TeamDescription "Finance Department documents" -TeamOwner peter@contoso.com -TeamAlias "FinanceDepartment" -TenantDomain contoso -PnPOnlineAppID a4363362-4336-4f33-833a-633f09628a7e
 
         .COPYRIGHT
         MIT License, feel free to distribute and use as you like, please leave author information.
@@ -98,23 +98,34 @@ param (
     [int]$RetryInterval = 10      # Time in seconds to wait between retries
 )
 
-# Check if PowerShell 7 is running
-if ($PSVersionTable.PSVersion.Major -lt 7) {
-    Write-Host "This script requires PowerShell 7. Checking if PowerShell 7 is installed..."
+# Check if the script is running with Administrator privileges
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "This script requires Administrator privileges. Please run this script as an Administrator."
+    exit
+}
 
+# Check if PowerShell is running as PowerShell 7
+if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
+    Write-Host "This script requires PowerShell 7 (Core) or later."
+    
     # Check if PowerShell 7 is installed
     $pwshPath = Get-Command pwsh -ErrorAction SilentlyContinue
     if (-not $pwshPath) {
         Write-Host "PowerShell 7 is not installed. Installing PowerShell 7 using winget..."
 
         # Install PowerShell 7 using winget
-        winget install --id Microsoft.PowerShell --source winget
+        try {
+            winget install --id Microsoft.PowerShell --source winget
+        } catch {
+            Write-Host "Failed to install PowerShell 7. Please install it manually using 'winget install --id Microsoft.PowerShell --source winget'."
+            exit
+        }
 
-        Write-Host "PowerShell 7 installed. Please restart your terminal and run this script again."
+        Write-Host "PowerShell 7 has been installed. Please open a new PowerShell 7 terminal and re-run this script."
         exit
     } else {
-        Write-Host "PowerShell 7 is installed. Relaunching the script in PowerShell 7..."
-        & "$pwshPath" "$($MyInvocation.MyCommand.Source)" @args
+        Write-Host "PowerShell 7 is installed, but you're not running it. Please open a PowerShell 7 terminal (pwsh) and re-run this script."
         exit
     }
 }
@@ -189,7 +200,6 @@ if ($existingTeam) {
                         
                         # Retrieve the library details
                         $library = Get-PnPList | Where-Object { $_.Title -eq 'Dokumenter' } -Verbose
-                        Write-Host "Library is  $library"
                         if ($library -ne $null) {
                             $site = Get-PnPSite
                             $tenantId = Get-PnPTenantId 
@@ -228,3 +238,4 @@ if ($existingTeam) {
 # Disconnect from the services
 Disconnect-MicrosoftTeams
 Disconnect-ExchangeOnline -Confirm:$false
+Disconnect-PnPOnline
