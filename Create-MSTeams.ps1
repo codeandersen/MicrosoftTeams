@@ -6,7 +6,7 @@
         Script is used to create an Microsoft Team with parameters and output the sharepoint document libary url that is being used for mapping it to client devices.
 
         .PARAMETER Name
-        TeamName
+        -TeamName
             Name of the Microsoft Team to be created.
             
             Required?                    true
