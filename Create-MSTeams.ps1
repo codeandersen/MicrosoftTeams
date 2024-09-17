@@ -102,13 +102,18 @@ function Install-ModuleIfMissing {
 # Check and install the required modules
 Install-ModuleIfMissing -ModuleName "MicrosoftTeams"
 Install-ModuleIfMissing -ModuleName "ExchangeOnlineManagement"
+Install-ModuleIfMissing -ModuleName "PnP.PowerShell"
 
 # Load required modules
 Import-Module MicrosoftTeams
 Import-Module ExchangeOnlineManagement
+Import-Module PnP.PowerShell
 
 # Authenticate to Microsoft Teams
 Connect-MicrosoftTeams
+
+# Authenticate to Exchange Online
+Connect-ExchangeOnline
 
 # Authenticate to Exchange Online
 Connect-ExchangeOnline
